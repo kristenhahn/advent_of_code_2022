@@ -1,4 +1,5 @@
 .venv/
+env/
 Day_01/elf_food.txt
 Day_02/rps_strategy.txt
 Day_03/rucksacks.txt
@@ -9,4 +10,4 @@ Day_07/input.txt
 Day_08/trees.txt
 Day_09/ropes.txt
 Day_10/input.txt
-env/
+Day_11/input.txt
