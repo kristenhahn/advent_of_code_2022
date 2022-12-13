@@ -11,7 +11,7 @@ import copy
 ##########
 
 
-with open('input.txt') as f:
+with open('test_input.txt') as f:
     data = f.read()
 
 # split input into lines
@@ -265,7 +265,13 @@ def step(route_id:int):
         if next_step == (ep):
             route['status']='complete'
 
-
+def get_incomplete_route_ids():
+    ids = []
+    # find the first incomplete route
+    for k,v in rte_dict.items():
+        if v['status']=='in progress':
+            ids.append(k)
+            return ids
 
 ##########
 # Prepare to run routes
@@ -290,26 +296,25 @@ rte_dict = {0:{'status':'in progress', 'points':[sp]}}
 # Run routes
 ##########
 
-keep_mapping = True
-while keep_mapping:
 
-    # find the incomplete routes
-    incomplete_routes = [r for r in rte_dict if rte_dict[r]['status']=='in progress']
+id_list = get_incomplete_route_ids()
 
-    # if there are any incomplete routes
-    if len(incomplete_routes) > 0:
+while len(id_list) > 0:
 
-        # pick the first incomplete route
-        r = incomplete_routes[0]
+    # pick the first incomplete route
+    r = id_list[0]
 
-        # step through the route until it ends (no longer 'in progress' status)
-        while rte_dict[r]['status'] == 'in progress':
-            step(r)
+    # step through the route until it ends (no longer 'in progress' status)
+    while rte_dict[r]['status'] == 'in progress':
+        step(r)
 
-    # if there are no incomplete routes, stop.
-    else:
-        keep_mapping = False
+    # recalculate the incomplete routes list
+    id_list = get_incomplete_route_ids()
+    if id_list == None:
+        break
+    
 
+   
 
 ##########
 # Find the shortest complete route
@@ -327,6 +332,9 @@ print(min_route)
 
 
 
+# rte_dict = {0:{'status':'complete', 'points':[(a,b)]}, 1:{'status':'in progress','points':[(2,3)]}}
 
+
+# print(get_first_incomplete_route_id)
 
 
