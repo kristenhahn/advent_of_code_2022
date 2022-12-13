@@ -11,7 +11,7 @@ import copy
 ##########
 
 
-with open('test_input.txt') as f:
+with open('input.txt') as f:
     data = f.read()
 
 # split input into lines
@@ -81,9 +81,9 @@ max_col = max(df.columns)
 #   Ignore points already visited on this path
 #   Ignore points with height > current point height + 1
 
-# If no points are left to move to, status = de
+# If no points are left to move to, status = dead end
 
-# if one point is available to move to, move to it.
+# if one point is available to move to, move to it, status = in progress
 
 # If multiple points are left to move to:
 
@@ -116,101 +116,70 @@ def find_point(letter:str):
 
 
 
-def list_adjacent(p:tuple):
-    '''list adjacent points to a given
-    point in the format (<index>,<column>)'''
-
-    i = p[0]
-    c = p[1]
-    points = []
-
-    # if not top row
-    if i >0:
-        above = (i-1,c)
-        points.append(above)
-
-    # if not bottom row
-    if i < max_index:
-        below = (i+1,c)
-        points.append(below)
-
-    # if not far left column
-    if c > 0:
-        left = (i, c-1)
-        points.append(left)
-
-    # if not far right colun
-    if c < max_col:
-        right = (i, c+1)
-        points.append(right)
-
-    return points
-
-
-def is_valid_step(route_id:int, point:tuple):
-    '''Given a route id from the route dictionary
-    and a point adjacent to the last point on the route,
-    return True if the points is a valid option for
-    the route to continue on.'''
-
-    # test point(the point being tested to see if it is
-    # a valid path): index and column
-    pi, pc = point[0], point[1]
-    # height of the test point
-    ph = df.loc[pi, pc]
-
-
-    # route
-    r = rte_dict[route_id]
-    # route points so far
-    rp = r['points']
-    # last route point
-    lp = rp[-1]
-    # last route point index and column
-    lpi, lpc = lp[0], lp[1]
-    # height of the last point on the route
-    lph = df.loc[lpi,lpc]
-
- 
-    # Has this point alreay been included on this route?
-    if point in rp:
-        return False
-
-    # Is this point adjacent to the last point on the route?
-            # not strictly necessary as long as only adjacent points 
-            # are being run through this function, but keeping 
-            # it just in case something changes later
-    if point not in list_adjacent(lp):
-        return False
-
-    # Is this point's height a max of one higher than the 
-    # last point on the route?
-    elif ph > lph + 1:
-        return False
-    
-    else:
-        return True
-
 def list_valid_next_steps(route_id:int):
-    '''Given a route id, this function returns
-    a list of valid next steps along that route,
-    if any.'''
+    '''list valid next steps from the last point in a route,
+    in the format (<index>,<column>)'''
 
     route = rte_dict[route_id]
+    route_points = route['points']
+    # last point in route so far
+    lp = route_points[-1]
+    # last point index
+    lpi = lp[0]
+    # last point column
+    lpc = lp[1]
+    # last point height
+    lph = df.loc[lpi, lpc]
 
+    # Find the points adjacent to the last
+    # point in the route
+    adjacent_points = []
+
+    # if not top row
+    if lpi >0:
+        above = (lpi-1,lpc)
+        adjacent_points.append(above)
+
+    # if not bottom row
+    if lpi < max_index:
+        below = (lpi+1,lpc)
+        adjacent_points.append(below)
+
+    # if not far left column
+    if lpc > 0:
+        left = (lpi, lpc-1)
+        adjacent_points.append(left)
+
+    # if not far right colun
+    if lpc < max_col:
+        right = (lpi, lpc+1)
+        adjacent_points.append(right)
+
+    # Check each adjacent point 
+    # to see if it is a valid next step.
+    # Create a list of valid next steps
     valid_steps = []
+  
+    for ap in adjacent_points:
+        api, apc = ap[0], ap[1]
+        # height of the adjacent point
+        aph = df.loc[api, apc]
 
-    # if route is already done, don't look for more steps.
-    if route['status']=='in progress':
+        # Has adjacent point already been included
+        # in this route? If so, don't put it on the list.
+        if ap in route_points:
+            pass
+
+        # Is adjacent point too high?  (height 
+        # more than last point height + 1)?
+        elif aph > (lph + 1):
+            pass
         
-        last_point = route['points'][-1]
-        adjacent_points = list_adjacent(last_point)
-
-        for p in adjacent_points:
-            # if valid steps are found, add to the list
-            if is_valid_step(route_id, p):
-                valid_steps.append(p)
-
+        # if neither of the previos conditions
+        # is true, this is a valid point. Add it
+        # to the list.
+        else:
+            valid_steps.append(ap)
 
     return valid_steps
 
@@ -222,10 +191,10 @@ def step(route_id:int):
 
     route = rte_dict[route_id]
 
-    steps = list_valid_next_steps(route_id)
+    valid_steps = list_valid_next_steps(route_id)
 
     # if there are no more valid steps available:
-    if len(steps) == 0:
+    if len(valid_steps) == 0 or valid_steps == None:
         # if end of route, mark complete.
         if route['points'][-1]==ep:
             route['status'] = 'complete'
@@ -234,44 +203,67 @@ def step(route_id:int):
             route['status']='dead end'
 
     # if there is only one valid step:
-    elif len(steps) == 1:
-        next_step = steps[0]
+    elif len(valid_steps) == 1:
+        next_step = valid_steps[0]
         # add step to the route
         route['points'].append(next_step)
         # check for end of route
         if next_step == (ep):
-            route['status']='complete'
+            route['status'] = 'complete'
+        else:
+            route['status'] = 'in progress'
 
     # if there are multiple valid steps:       
     else:
-        while len(steps)>1:
+        while len(valid_steps)>1:
             # pick off one valid step at a time
-            next_step = steps.pop()
+            next_step = valid_steps.pop()
             # make a new copy of the route so 
             # all possible routes can continue separately
             next_route_id = max(rte_dict)+1
             rte_dict[next_route_id]=copy.deepcopy(route)
-            rte_dict[next_route_id]['status']='in progress'
+            # add step to the copied route
             rte_dict[next_route_id]['points'].append(next_step)
-            # check for end of route
-            if next_step == (ep):
-                rte_dict[next_route_id]['status']='complete'
-                
+            # check copied to see if it has ended
+            if next_step == ep:
+                rte_dict[next_route_id]['status'] = 'complete'
+            else:
+                rte_dict[next_route_id]['status'] = 'in progress'
+         
         # once the list of valid steps is down to one
-        next_step = steps[0]
+        next_step = valid_steps[0]
         # add step to the route
         route['points'].append(next_step)
         # check for end of route
         if next_step == (ep):
-            route['status']='complete'
+            route['status'] = 'complete'
+        else:
+            route['status'] = 'in progress'
 
 def get_incomplete_route_ids():
-    ids = []
+    incomplete_ids = []
     # find the first incomplete route
     for k,v in rte_dict.items():
         if v['status']=='in progress':
-            ids.append(k)
-            return ids
+            incomplete_ids.append(k)
+    return incomplete_ids
+
+def get_complete_route_ids():
+    complete_ids = []
+    # find the first complete route
+    for k,v in rte_dict.items():
+        if v['status']=='complete':
+            complete_ids.append(k)
+    return complete_ids
+
+def get_dead_end_route_ids():
+    dead_end_ids = []
+    # find the first dead end route
+    for k,v in rte_dict.items():
+        if v['status']=='dead end':
+            dead_end_ids.append(k)
+    return dead_end_ids
+
 
 ##########
 # Prepare to run routes
@@ -297,30 +289,72 @@ rte_dict = {0:{'status':'in progress', 'points':[sp]}}
 ##########
 
 
-id_list = get_incomplete_route_ids()
+# id_list = get_incomplete_route_ids()
 
-while len(id_list) > 0:
+# while len(id_list) > 0:
+
+#     # pick the first incomplete route
+#     r = id_list[0]
+
+#     # step through the route until it ends (no longer 'in progress' status)
+#     while rte_dict[r]['status'] == 'in progress':
+#         step(r)
+
+#     # recalculate the incomplete routes list
+#     id_list = get_incomplete_route_ids()
+#     if id_list == None:
+#         break
+
+
+
+incomplete_id_list = get_incomplete_route_ids()
+
+keep_mapping = True
+while keep_mapping == True:
 
     # pick the first incomplete route
-    r = id_list[0]
+    rid = incomplete_id_list[0]
+    print(f"Now working on route {rid}")
 
     # step through the route until it ends (no longer 'in progress' status)
-    while rte_dict[r]['status'] == 'in progress':
-        step(r)
+    route_status = rte_dict[rid]['status']
+    while route_status == 'in progress':
+        step(rid)
+        route_status = rte_dict[rid]['status']
 
-    # recalculate the incomplete routes list
-    id_list = get_incomplete_route_ids()
-    if id_list == None:
-        break
+
+    # check incomplete ID list again to see if there are more
+    incomplete_id_list = get_incomplete_route_ids()
+    # print(f'Incomplete routes: {incomplete_id_list}')
+
+    # complete_id_list = get_complete_route_ids()
+    # print(f'Complete routes: {complete_id_list}')
+
+    # dead_end_id_list = get_dead_end_route_ids()
+    # print(f'Dead end routes: {dead_end_id_list}\n')
+
+    # check for complete routes and stop mapping
+    # if there are no more.
+    if incomplete_id_list == None:
+        keep_mapping = False
+    elif len(incomplete_id_list) == 0:
+        keep_mapping = False
+    else:
+        keep_mapping = True
+    
+
+    # # recalculate the incomplete routes list
+    # # id_list = get_incomplete_route_ids()
+    # if id_list == None:
+    #     break
     
 
    
-
 ##########
 # Find the shortest complete route
 ##########
 
-complete_route_ids = [r for r in rte_dict if rte_dict[r]['status']=='complete']
+complete_route_ids = get_complete_route_ids()
 
 complete_route_point_count = [len(rte_dict[r]['points']) for r in complete_route_ids]
 
@@ -330,11 +364,6 @@ min_route = min(complete_route_step_count)
 
 print(min_route)
 
-
-
-# rte_dict = {0:{'status':'complete', 'points':[(a,b)]}, 1:{'status':'in progress','points':[(2,3)]}}
-
-
-# print(get_first_incomplete_route_id)
-
+# print(rte_dict)
+# print(get_dead_end_route_ids())
 
