@@ -53,7 +53,10 @@ def lower_letter_to_height(letter):
 # convert lowercase letters in dataframe to heights
 df = df.applymap(lower_letter_to_height)
 
-# print(df)
+# find max index (row) and column:
+max_index = max(df.index)
+max_col = max(df.columns)
+
 
 ##########
 # Strategy for mapping out routes
@@ -98,18 +101,66 @@ df = df.applymap(lower_letter_to_height)
 ##########
 
 # Find start and end points:
-
-def find_point(letter):
+def find_point(letter:str):
     for c in df.columns:
         if any(df[c]==letter):
             index_filter = df[c]==letter
             i = df.loc[index_filter,c].index[0]
             return(i, c)
 
+
+# list adjacent points given the index and column of a point
+def list_adjacent(p:tuple):
+    '''list adjacent points to a given
+    point in the format (<index>,<column>)'''
+
+    i = p[0]
+    c = p[1]
+    points = []
+
+    # if not top row
+    if i >0:
+        above = (i-1,c)
+        points.append(above)
+
+    # if not bottom row
+    if i < max_index:
+        below = (i+1,c)
+        points.append(below)
+
+    # if not far left column
+    if c > 0:
+        left = (i, c-1)
+        points.append(left)
+
+    # if not far right colun
+    if c < max_col:
+        right = (i, c+1)
+        points.append(right)
+
+    return points
+
+
+
+
+
+
+
+
+
+
 # start point
 sp = find_point('S')
 # end point
 ep = find_point('E')
+
+# set up route dictionary
+rte_dict = {}
+# route id
+i = 1
+
+
+
 
 
 
