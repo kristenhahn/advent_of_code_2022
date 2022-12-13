@@ -1,4 +1,3 @@
-
 import pandas as pd
 
 ##########
@@ -35,36 +34,11 @@ for chr_code in range(97,123):
 # letter_ht_dict['S'] = 0
 # letter_ht_dict['E'] = 25
 
-# print(letter_ht_dict)
 
 ##########
-# Convert letters to heights
+# Grid dictionary: Convert row-column positions 
+# in the grid to heights
 ##########
-
-print(lines)
-
-
-##########
-# Grid dictionary converting row-column positions in the grid to heights
-##########
-
-
-# grid = {}
-
-# # loop through lines (rows)
-# for l in lines:
-#     # loop through items in each line (columns)
-#     for i in lines[l]:
-#         # add item to dictionary, key = (<row>,<column>)
-#         # grid[(l,i)] = 
-
-
-
-
-
-
-
-
 
 # crate dataframe of letters
 df = pd.DataFrame(lines)
@@ -79,7 +53,63 @@ def lower_letter_to_height(letter):
 # convert lowercase letters in dataframe to heights
 df = df.applymap(lower_letter_to_height)
 
+# print(df)
+
+##########
+# Strategy for mapping out routes
+##########
+
+# Route dictionary:
+# {id: [status, [(index, col),(index, col)...]}
+#       status options:
+#           ip = in progress)
+#           de = completed path ending in a dead end)
+#           cp = complete path to the endpoint
+#       (row, col) pairs indicate points along the path in order
+#
+# For each point on the path:
+#   Identify all adjacent points
+#   Ignore points already visited on this path
+#   Ignore points with height > current point height + 1
+
+# If no points are left to move to, status = de
+
+# if one point is available to move to, move to it.
+
+# If multiple points are left to move to:
+
+#   Copy the entire path to a new dictionary id and continue 
+#   it to one available adjacent point.
+
+#   Repeat the step above if there are more than 2 available points,
+#   each time choosing a different adjacent point to move to.
+
+#   On the original path, move to the last available direction 
+#   and continue on.
+
+#   Once a path is complete (dead end or completed path), return to 
+#   an incomplete path and keep going.
+# When all possible paths are completed, measure the complete paths
+#  to find the shortest.
+# Choose one 
+
+##########
+# Start mapping routes
+##########
+
+# Find start and end points:
+
+def find_point(letter):
+    for c in df.columns:
+        if any(df[c]==letter):
+            index_filter = df[c]==letter
+            i = df.loc[index_filter,c].index[0]
+            return(i, c)
+
+# start point
+sp = find_point('S')
+# end point
+ep = find_point('E')
 
 
-print(df)
 
