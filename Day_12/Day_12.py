@@ -65,7 +65,7 @@ max_col = max(df.columns)
 
 
 ##########
-# Strategy for mapping out routes
+# Strategy for mapping out every possible route
 ##########
 
 # Route dictionary:
