@@ -121,7 +121,7 @@ class Chamber():
                     row_text += '@'
                 else:
                     row_text += '.'
-            print(row_text)
+            print(f'{r} {row_text}')
         print('')
 
     def print_chamber_slice(self, min_y, max_y):
@@ -192,6 +192,39 @@ class Chamber():
                 self.max_rock_y = rock_y
             return ('rock bottom')
 
+    def find_effective_floor(self):
+        # Added for Part 2
+        # If 3 adjacent rows cover all columns, then 
+        # none of the available shapes can get past them.
+        # Look for this condition and remove all
+        # of the occupied points below it.
+
+        # check the top 3 rows.
+
+        for y in reversed(range(2,self.max_rock_y)):
+
+            r1 = y
+            r2 = r1 - 1
+            r3 = r1 - 2
+    
+            occupied_cols = [p[0] for p in self.occupied_points if p[1]in(r1,r2,r3)]
+            occupied_cols = set(occupied_cols)
+            # if all columns are occupied, delete all of the occupied points
+            # below these rows.
+            if len(occupied_cols) == self.width + 2:
+                # print(f'{len(self.occupied_points)} occupied points.')
+                # print(f'r3 is {r3}')
+                lower_points = [(x,y) for (x,y) in self.occupied_points if y < r3]
+                # print(f'{len(lower_points)} lower points.')
+                self.occupied_points.difference_update(lower_points)
+                return r3
+            else:
+                return None
+                # print(f'Now there are {len(self.occupied_points)} occupied points.')
+                # self.print_chamber()
+
+                
+
 ###########       
 # Run game
 ###########
@@ -214,7 +247,7 @@ fallen_rocks = 0
 
 max_rock_height = 0
 
-while fallen_rocks < 2022:
+while fallen_rocks < 2000:
 
     # get the next rock type to fall and add it to the back of the list
     rock_type = rock_order.pop(0)
@@ -256,6 +289,12 @@ while fallen_rocks < 2022:
         move = chamber.move_rock_down(rock)
         if move == 'rock bottom':
             turn_end = True
+            floor = chamber.find_effective_floor()
+            if floor != None:
+                print(f'new floor is row {floor}')
+                print(f'floor change is {old_floor - floor}')
+                print(f'{fallen_rocks} rocks have fallen.')
+                print(f'rock height = {chamber.max_rock_y}\n')
             fallen_rocks += 1
             # print(f'{fallen_rocks} rocks have fallen.')
 
@@ -269,127 +308,15 @@ while fallen_rocks < 2022:
 print(f'Total rock height = {chamber.max_rock_y+1}')
 
 
+##########
+# Part 2
+##########
+
+# Define a new "false" chamber bottom and trim it to that point?
+# What are the conditions for that?  Obviously a complete
+# filled row would do it - any other ways?
+
+# If a group of adjacent rows covers all 7 columns with overlaps,
+# then the bottom of these is the new effective chamber bottom.
 
 
-
-
-
-
-
-
-
-
-
-    
-
-
-
-
-
-
-
-
-
-    
-
-### test printing ###
-
-# test_chamber = Chamber()
-# test_chamber.build_floor()
-
-# r = test_chamber.add_rock('d')
-# test_chamber.print_chamber()
-# test_chamber.move_rock_right(r)
-# test_chamber.print_chamber()
-# test_chamber.move_rock_right(r)
-# test_chamber.print_chamber()
-# test_chamber.move_rock_left(r)
-# test_chamber.print_chamber()
-# test_chamber.move_rock_down(r)
-# test_chamber.print_chamber()
-# test_chamber.move_rock_left(r)
-# test_chamber.print_chamber()
-# test_chamber.move_rock_left(r)
-# test_chamber.print_chamber()
-# test_chamber.move_rock_left(r)
-# test_chamber.print_chamber()
-# test_chamber.move_rock_left(r)
-# test_chamber.print_chamber()
-# test_chamber.move_rock_down(r)
-# test_chamber.print_chamber()
-# test_chamber.move_rock_down(r)
-# test_chamber.print_chamber()
-# test_chamber.move_rock_down(r)
-# test_chamber.print_chamber()
-# test_chamber.move_rock_down(r)
-# test_chamber.print_chamber()
-
-
-
-# test_rock = Rock('a', 0)
-# test_rock_2 = Rock('b', (4,4))
-# test_rock_3 = Rock('c', 0)
-# test_rock_4 = Rock('d', 0)
-# test_rock_5 = Rock('e', 0)
-
-# test_rock.print_shape()
-# print('')
-# test_rock.move_right()
-# print()
-
-# test_rock_2.print_shape()
-# print()
-# test_rock_2.move_right()
-# print()
-# test_rock_2.move_right()
-# print()
-# test_rock_2.move_right()
-# print()
-# test_rock_2.move_right()
-# print()
-# test_rock_2.move_right()
-# print()
-# test_rock_2.move_right()
-# print()
-# test_rock_2.move_right()
-# print()
-# test_rock_2.move_right()
-
-# test_rock_2.print_shape()
-# print()
-# test_rock_2.move_left()
-# print()
-# test_rock_2.move_left()
-# print()
-# test_rock_2.move_left()
-# print()
-# test_rock_2.move_left()
-# print()
-# test_rock_2.move_left()
-# print()
-# test_rock_2.move_left()
-# print()
-# test_rock_2.move_left()
-# print()
-# test_rock_2.move_left()
-# print()
-# test_rock_2.move_left()
-# print()
-
-# test_rock_2.move_down()
-# print()
-# test_rock_2.move_down()
-# print()
-# test_rock_2.move_down()
-# print()
-# test_rock_2.move_down()
-# print()
-
-
-
-# test_rock_3.print_shape()
-# print('')
-# test_rock_4.print_shape()
-# print('')
-# test_rock_5.print_shape()
-# print('')
